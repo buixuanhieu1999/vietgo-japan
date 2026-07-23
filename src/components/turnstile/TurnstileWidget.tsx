@@ -36,8 +36,8 @@ export function TurnstileWidget({ onToken, onExpire, className }: TurnstileWidge
 
   useEffect(() => {
     if (!env.turnstileSiteKey) {
-      // Dev without Turnstile: send placeholder so forms remain testable locally
-      onTokenRef.current('dev-bypass-token')
+      // No site key: do not fake a valid token (server must reject)
+      onTokenRef.current('')
       return
     }
 
@@ -83,8 +83,10 @@ export function TurnstileWidget({ onToken, onExpire, className }: TurnstileWidge
 
   if (!env.turnstileSiteKey) {
     return (
-      <p className="text-xs text-navy-500">
-        Turnstile chưa cấu hình (dev mode) — server sẽ từ chối nếu thiếu secret.
+      <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+        Cloudflare Turnstile chưa cấu hình. Thêm{' '}
+        <code className="font-mono text-xs">VITE_TURNSTILE_SITE_KEY</code> và rebuild. Xem{' '}
+        <code className="font-mono text-xs">README_DEPLOY.md</code>.
       </p>
     )
   }
