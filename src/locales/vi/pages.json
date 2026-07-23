@@ -1,0 +1,146 @@
+{
+  "home": {
+    "title": "Xe đưa đón & hỗ trợ người Việt tại Nhật",
+    "meta": "VietGo Japan — đưa đón sân bay, xe ghép, nhà máy và hỗ trợ hồ sơ cho người Việt tại Nhật Bản. Trụ sở Nagoya.",
+    "heroTitle": "Đồng hành cùng người Việt trên mọi hành trình tại Nhật Bản",
+    "heroSubtitle": "Đặt xe đưa đón sân bay, xe ghép, nhà máy và nhận hỗ trợ hồ sơ hành chính — qua mạng lưới đối tác vận tải được xác minh, trụ sở Nagoya.",
+    "quickBook": "Đặt xe nhanh",
+    "servicesTitle": "Dịch vụ chính",
+    "airportsTitle": "Sân bay ưu tiên",
+    "routesTitle": "Tuyến phổ biến",
+    "processTitle": "Quy trình đặt xe",
+    "process1": "Gửi yêu cầu trên website",
+    "process2": "Điều phối xác nhận & báo giá",
+    "process3": "Phân công tài xế đã xác minh",
+    "process4": "Đón khách & hoàn thành chuyến",
+    "reviewsTitle": "Đánh giá khách hàng",
+    "reviewsEmpty": "Chưa có đánh giá được quản trị viên phê duyệt. Chúng tôi không hiển thị review giả.",
+    "faqTitle": "Câu hỏi thường gặp",
+    "officeTitle": "Trụ sở Nagoya",
+    "ctaTitle": "Sẵn sàng đặt xe?",
+    "ctaBody": "Gửi yêu cầu trong vài phút. Bạn sẽ nhận mã booking để tra cứu trạng thái."
+  },
+  "airport": {
+    "title": "Đưa đón sân bay",
+    "meta": "Xe đưa đón sân bay Nhật Bản cho người Việt — Centrair NGO, Narita, Haneda, Kansai và các sân bay ưu tiên khác.",
+    "intro": "Hỗ trợ đưa đón từ/đến các sân bay lớn. Khai báo chuyến bay, nhà ga và hành lý để điều phối chuẩn bị phù hợp."
+  },
+  "shared": {
+    "title": "Xe ghép theo lịch trình",
+    "meta": "Xe ghép người Việt ở Nhật — chuyến do doanh nghiệp vận tải tạo và quản lý, không tự ghép tự động.",
+    "intro": "Xe ghép dựa trên các chuyến đã được doanh nghiệp tạo. Số ghế được giữ an toàn; điều phối viên xác nhận trước khi hoàn tất ghép."
+  },
+  "intercity": {
+    "title": "Đi tỉnh / liên tỉnh",
+    "meta": "Xe đi tỉnh tại Nhật Bản cho người Việt — từ sân bay hoặc nơi ở tới các tỉnh.",
+    "intro": "Yêu cầu chuyến liên tỉnh hoặc từ sân bay tới tỉnh. Giá chính thức được báo sau khi điều phối xem xét."
+  },
+  "factory": {
+    "title": "Đưa đón nhà máy & theo ca",
+    "meta": "Xe đi nhà máy tại Nhật — đưa đón công nhân theo ca, từ nhà ở, ga tàu hoặc sân bay.",
+    "intro": "Phù hợp công nhân và nhóm đi ca. Ghi rõ điểm đón, ca làm việc và yêu cầu đặc biệt trong form đặt xe."
+  },
+  "support": {
+    "title": "Hỗ trợ hồ sơ & thủ tục",
+    "meta": "Hỗ trợ hồ sơ người Việt ở Nhật — điền form, đặt lịch, bảo hiểm, thuế… hỗ trợ ngôn ngữ và hướng dẫn, không phải tư vấn pháp lý.",
+    "intro": "Chúng tôi hỗ trợ ngôn ngữ, chuẩn bị tài liệu và hướng dẫn thủ tục. Không tuyên bố tư vấn pháp lý, đại diện pháp lý hay dịch vụ thuộc ngành nghề cấp phép nếu chưa có giấy phép tương ứng.",
+    "disclaimer": "Lưu ý pháp lý: dịch vụ hỗ trợ hồ sơ không thay thế luật sư, hành chính chuyên môn có cấp phép, hay đại lý được ủy quyền."
+  },
+  "pricing": {
+    "title": "Bảng giá tham khảo",
+    "meta": "Bảng giá tham khảo đưa đón sân bay và xe ghép — giá chính thức theo báo giá từng chuyến.",
+    "intro": "Các mức giá (nếu hiển thị) chỉ mang tính tham khảo. Báo giá chính thức được gửi sau khi điều phối xác nhận lộ trình, thời gian và số ghế.",
+    "noPrice": "Liên hệ để nhận báo giá",
+    "note": "Chúng tôi không bịa giá cố định cho mọi tuyến. Giá phụ thuộc quãng đường, thời điểm, loại xe và chính sách đối tác."
+  },
+  "routes": {
+    "title": "Tuyến đang hoạt động",
+    "meta": "Tuyến xe VietGo Japan đang mở — demo từ khu vực Nagoya / Centrair.",
+    "intro": "Danh sách tuyến công khai do quản trị viên duy trì. Ghép chuyến cụ thể do điều phối xác nhận."
+  },
+  "about": {
+    "title": "Về chúng tôi",
+    "meta": "VietGo Japan — trụ sở Nagoya, đồng hành cùng cộng đồng người Việt tại Nhật Bản.",
+    "body": "VietGo Japan là nền tảng nhận yêu cầu đặt xe và hỗ trợ hồ sơ cho người Việt tại Nhật Bản, vận hành từ Nagoya với mạng lưới đối tác vận tải được xác minh."
+  },
+  "office": {
+    "title": "Trụ sở Nagoya",
+    "meta": "Trụ sở VietGo Japan tại Nagoya, Aichi, Nhật Bản.",
+    "city": "Nagoya, Aichi, Nhật Bản",
+    "addressPlaceholder": "[Địa chỉ đầy đủ tại Nagoya — cập nhật bởi quản trị viên]",
+    "hoursPlaceholder": "[Giờ làm việc — cập nhật bởi quản trị viên]"
+  },
+  "faq": {
+    "title": "Câu hỏi thường gặp",
+    "meta": "FAQ VietGo Japan — đặt xe, thanh toán, hỗ trợ hồ sơ và cam kết hợp pháp."
+  },
+  "contact": {
+    "title": "Liên hệ",
+    "meta": "Liên hệ VietGo Japan — đặt câu hỏi, khiếu nại hoặc yêu cầu hỗ trợ.",
+    "success": "Đã gửi tin nhắn. Chúng tôi sẽ phản hồi sớm."
+  },
+  "book": {
+    "title": "Đặt xe",
+    "meta": "Form đặt xe VietGo Japan — sân bay, xe ghép, nhà máy, liên tỉnh.",
+    "successTitle": "Đã nhận yêu cầu đặt xe",
+    "successBody": "Vui lòng lưu mã booking để tra cứu. Email xác nhận sẽ được gửi nếu hệ thống email đã cấu hình.",
+    "bookingCode": "Mã booking",
+    "notConfirmation": "Đây là xác nhận đã nhận yêu cầu, chưa phải xác nhận chuyến cuối cùng."
+  },
+  "lookup": {
+    "title": "Tra cứu booking",
+    "meta": "Tra cứu trạng thái đặt xe bằng mã booking và email/SĐT.",
+    "hint": "Nhập mã booking và email hoặc số điện thoại đã dùng khi đặt."
+  },
+  "auth": {
+    "loginTitle": "Đăng nhập",
+    "registerTitle": "Đăng ký tài khoản",
+    "loginMeta": "Đăng nhập VietGo Japan",
+    "registerMeta": "Đăng ký tài khoản khách hàng VietGo Japan"
+  },
+  "customer": {
+    "title": "Tài khoản của tôi",
+    "bookings": "Booking của tôi",
+    "upcoming": "Sắp tới",
+    "history": "Lịch sử",
+    "quotes": "Báo giá",
+    "tickets": "Ticket hỗ trợ",
+    "documents": "Tài liệu cần bổ sung",
+    "notifications": "Thông báo",
+    "profile": "Hồ sơ cá nhân"
+  },
+  "admin": {
+    "title": "Bảng điều khiển quản trị",
+    "overview": "Tổng quan",
+    "bookings": "Booking",
+    "trips": "Chuyến",
+    "drivers": "Tài xế",
+    "vehicles": "Phương tiện",
+    "support": "Ticket hỗ trợ",
+    "content": "Nội dung",
+    "audit": "Audit log",
+    "licenses": "Giấy phép sắp hết hạn",
+    "today": "Booking hôm nay",
+    "pending": "Chờ xử lý",
+    "revenue": "Doanh thu (ghi nhận thủ công)"
+  },
+  "driver": {
+    "title": "Chuyến được phân công",
+    "empty": "Bạn chưa được phân công chuyến nào."
+  },
+  "legal": {
+    "terms": "Điều khoản sử dụng",
+    "privacy": "Chính sách quyền riêng tư",
+    "cancellation": "Chính sách hủy chuyến",
+    "refund": "Chính sách hoàn tiền",
+    "baggage": "Quy định hành lý",
+    "child": "Chính sách bảo vệ trẻ em",
+    "notice": "Thông báo pháp lý",
+    "complaints": "Cơ chế khiếu nại",
+    "antiIllegal": "Cam kết chống vận tải trái phép"
+  },
+  "notFound": {
+    "title": "Không tìm thấy trang",
+    "body": "Trang bạn tìm không tồn tại hoặc đã được di chuyển."
+  }
+}

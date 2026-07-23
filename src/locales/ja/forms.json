@@ -1,0 +1,92 @@
+{
+  "booking": {
+    "serviceType": "サービス種別",
+    "pickupAddress": "乗車地",
+    "pickupPrefecture": "乗車都道府県",
+    "pickupPostal": "乗車郵便番号",
+    "dropoffAddress": "降車地",
+    "dropoffPrefecture": "降車都道府県",
+    "dropoffPostal": "降車郵便番号",
+    "airport": "空港",
+    "pickupDate": "乗車日",
+    "pickupTime": "乗車時刻",
+    "flightNumber": "便名",
+    "flightArrival": "到着時刻",
+    "terminal": "ターミナル",
+    "terminalInternational": "国際",
+    "terminalDomestic": "国内",
+    "terminalUnknown": "不明",
+    "passengers": "人数",
+    "adults": "大人",
+    "children": "子供",
+    "childSeats": "チャイルドシート",
+    "largeLuggage": "大型荷物",
+    "cabinLuggage": "機内持込",
+    "wheelchair": "車椅子等のサポート",
+    "specialAssistance": "特別サポート内容",
+    "ridePreference": "車両形態",
+    "shared": "相乗り",
+    "private": "貸切",
+    "either": "どちらでも",
+    "timeFlexible": "時間調整可",
+    "flexibleWindow": "調整幅（分）",
+    "contactName": "お名前",
+    "contactPhone": "日本の電話番号",
+    "contactEmail": "メール",
+    "lineId": "LINE ID（任意）",
+    "notes": "備考",
+    "paymentMethod": "支払方法（予定）",
+    "privacy": "プライバシーポリシーに同意します",
+    "terms": "利用規約に同意します",
+    "submit": "予約依頼を送る",
+    "selectPrefecture": "都道府県を選択",
+    "selectAirport": "空港を選択",
+    "selectService": "サービスを選択"
+  },
+  "contact": {
+    "name": "お名前",
+    "email": "メール",
+    "phone": "電話",
+    "subject": "件名",
+    "message": "内容",
+    "submit": "送信"
+  },
+  "support": {
+    "serviceType": "サポート種別",
+    "title": "件名",
+    "description": "詳細",
+    "submit": "サポート依頼を送る",
+    "privacy": "プライバシーに同意し、法律相談ではないことを理解します"
+  },
+  "auth": {
+    "email": "メール",
+    "password": "パスワード",
+    "confirmPassword": "パスワード確認",
+    "fullName": "お名前",
+    "phone": "電話",
+    "login": "ログイン",
+    "register": "登録",
+    "privacy": "プライバシーポリシーに同意します"
+  },
+  "lookup": {
+    "code": "予約コード",
+    "contact": "メールまたは電話番号",
+    "submit": "確認する"
+  },
+  "errors": {
+    "required": "必須項目を入力してください",
+    "email": "メール形式が正しくありません",
+    "phone": "電話番号が正しくありません",
+    "passengerSum": "大人＋子供は人数と一致する必要があります",
+    "privacy": "ポリシーへの同意が必要です",
+    "turnstile": "スパム検証に失敗しました",
+    "generic": "送信できませんでした。再試行してください。",
+    "passwordMismatch": "パスワードが一致しません"
+  },
+  "success": {
+    "booking": "予約依頼を送信しました",
+    "contact": "お問い合わせを送信しました",
+    "support": "サポート依頼を送信しました",
+    "register": "登録完了 — 確認メールがある場合はご確認ください"
+  }
+}

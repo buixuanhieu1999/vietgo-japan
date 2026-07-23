@@ -1,0 +1,92 @@
+{
+  "booking": {
+    "serviceType": "Loại dịch vụ",
+    "pickupAddress": "Điểm đón",
+    "pickupPrefecture": "Tỉnh điểm đón",
+    "pickupPostal": "Mã bưu điện điểm đón",
+    "dropoffAddress": "Điểm đến",
+    "dropoffPrefecture": "Tỉnh điểm đến",
+    "dropoffPostal": "Mã bưu điện điểm đến",
+    "airport": "Sân bay",
+    "pickupDate": "Ngày đón",
+    "pickupTime": "Giờ đón",
+    "flightNumber": "Số hiệu chuyến bay",
+    "flightArrival": "Giờ máy bay hạ cánh",
+    "terminal": "Nhà ga",
+    "terminalInternational": "Quốc tế",
+    "terminalDomestic": "Nội địa",
+    "terminalUnknown": "Chưa rõ",
+    "passengers": "Số hành khách",
+    "adults": "Người lớn",
+    "children": "Trẻ em",
+    "childSeats": "Ghế trẻ em",
+    "largeLuggage": "Vali lớn",
+    "cabinLuggage": "Hành lý xách tay",
+    "wheelchair": "Cần hỗ trợ xe lăn / đặc biệt",
+    "specialAssistance": "Mô tả hỗ trợ đặc biệt",
+    "ridePreference": "Hình thức xe",
+    "shared": "Xe ghép",
+    "private": "Xe riêng",
+    "either": "Linh hoạt",
+    "timeFlexible": "Linh hoạt thời gian",
+    "flexibleWindow": "Khoảng linh hoạt (phút)",
+    "contactName": "Họ tên",
+    "contactPhone": "Số điện thoại Nhật Bản",
+    "contactEmail": "Email",
+    "lineId": "LINE ID (tùy chọn)",
+    "notes": "Ghi chú",
+    "paymentMethod": "Phương thức thanh toán dự kiến",
+    "privacy": "Tôi đồng ý với chính sách quyền riêng tư",
+    "terms": "Tôi đồng ý với điều khoản vận chuyển / sử dụng",
+    "submit": "Gửi yêu cầu đặt xe",
+    "selectPrefecture": "Chọn tỉnh/thành",
+    "selectAirport": "Chọn sân bay",
+    "selectService": "Chọn loại dịch vụ"
+  },
+  "contact": {
+    "name": "Họ tên",
+    "email": "Email",
+    "phone": "Điện thoại",
+    "subject": "Chủ đề",
+    "message": "Nội dung",
+    "submit": "Gửi tin nhắn"
+  },
+  "support": {
+    "serviceType": "Loại hỗ trợ",
+    "title": "Tiêu đề",
+    "description": "Mô tả chi tiết",
+    "submit": "Gửi yêu cầu hỗ trợ",
+    "privacy": "Tôi đồng ý chính sách quyền riêng tư và hiểu đây không phải tư vấn pháp lý"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Mật khẩu",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "fullName": "Họ tên",
+    "phone": "Điện thoại",
+    "login": "Đăng nhập",
+    "register": "Tạo tài khoản",
+    "privacy": "Tôi đồng ý chính sách quyền riêng tư"
+  },
+  "lookup": {
+    "code": "Mã booking",
+    "contact": "Email hoặc số điện thoại",
+    "submit": "Tra cứu"
+  },
+  "errors": {
+    "required": "Vui lòng điền thông tin bắt buộc",
+    "email": "Email không hợp lệ",
+    "phone": "Số điện thoại không hợp lệ",
+    "passengerSum": "Tổng người lớn + trẻ em phải bằng số hành khách",
+    "privacy": "Bạn cần đồng ý chính sách",
+    "turnstile": "Xác minh chống spam thất bại",
+    "generic": "Không thể gửi. Vui lòng thử lại.",
+    "passwordMismatch": "Mật khẩu xác nhận không khớp"
+  },
+  "success": {
+    "booking": "Đã gửi yêu cầu đặt xe",
+    "contact": "Đã gửi liên hệ",
+    "support": "Đã gửi yêu cầu hỗ trợ",
+    "register": "Đăng ký thành công — kiểm tra email xác nhận nếu được bật"
+  }
+}

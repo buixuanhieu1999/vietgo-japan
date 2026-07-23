@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Disallow: /tai-khoan
+Disallow: /quan-tri
+Disallow: /tai-xe
+Disallow: /dat-xe/thanh-cong
+
+Sitemap: https://YOUR_DOMAIN/sitemap.xml

@@ -1,0 +1,111 @@
+{
+  "appName": "VietGo Japan",
+  "slogan": "Đồng hành cùng người Việt trên mọi hành trình tại Nhật Bản",
+  "nav": {
+    "home": "Trang chủ",
+    "airport": "Đưa đón sân bay",
+    "shared": "Xe ghép",
+    "intercity": "Đi tỉnh",
+    "factory": "Đưa đón nhà máy",
+    "support": "Hỗ trợ hồ sơ",
+    "pricing": "Bảng giá",
+    "routes": "Tuyến đang hoạt động",
+    "about": "Về chúng tôi",
+    "office": "Trụ sở Nagoya",
+    "faq": "Câu hỏi thường gặp",
+    "contact": "Liên hệ",
+    "book": "Đặt xe",
+    "lookup": "Tra cứu booking",
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "logout": "Đăng xuất",
+    "dashboard": "Tài khoản",
+    "admin": "Quản trị",
+    "legal": "Điều khoản & chính sách",
+    "menu": "Menu",
+    "close": "Đóng"
+  },
+  "cta": {
+    "bookNow": "Đặt xe ngay",
+    "getQuote": "Yêu cầu báo giá",
+    "contactUs": "Liên hệ",
+    "call": "Gọi điện",
+    "line": "Nhắn LINE",
+    "openMaps": "Mở Google Maps",
+    "submit": "Gửi yêu cầu",
+    "search": "Tra cứu",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "back": "Quay lại",
+    "learnMore": "Tìm hiểu thêm",
+    "viewAll": "Xem tất cả"
+  },
+  "footer": {
+    "services": "Dịch vụ",
+    "company": "Doanh nghiệp",
+    "legal": "Pháp lý",
+    "hq": "Trụ sở",
+    "hqCity": "Nagoya, Aichi, Nhật Bản",
+    "scope": "Hỗ trợ toàn quốc tại Nhật Bản thông qua trụ sở Nagoya và mạng lưới đối tác vận tải được xác minh.",
+    "rights": "Mọi quyền được bảo lưu.",
+    "placeholderNote": "Thông tin pháp nhân, giấy phép và liên hệ chính thức do quản trị viên cập nhật — không hiển thị tuyên bố cấp phép khi chưa xác minh."
+  },
+  "status": {
+    "loading": "Đang tải…",
+    "error": "Đã xảy ra lỗi. Vui lòng thử lại.",
+    "empty": "Chưa có dữ liệu.",
+    "success": "Thành công",
+    "notConfigured": "Hệ thống chưa cấu hình kết nối backend. Vui lòng thiết lập biến môi trường Supabase."
+  },
+  "lang": {
+    "vi": "Tiếng Việt",
+    "ja": "日本語",
+    "label": "Ngôn ngữ"
+  },
+  "roles": {
+    "customer": "Khách hàng",
+    "support_agent": "Nhân viên hỗ trợ",
+    "dispatcher": "Điều phối",
+    "driver": "Tài xế",
+    "admin": "Quản trị",
+    "super_admin": "Siêu quản trị"
+  },
+  "bookingStatus": {
+    "draft": "Nháp",
+    "requested": "Đã gửi yêu cầu",
+    "reviewing": "Đang xem xét",
+    "quoted": "Đã báo giá",
+    "awaiting_customer_confirmation": "Chờ khách xác nhận",
+    "confirmed": "Đã xác nhận",
+    "assigned": "Đã phân công",
+    "driver_en_route": "Tài xế đang tới",
+    "picked_up": "Đã đón khách",
+    "in_transit": "Đang di chuyển",
+    "completed": "Hoàn thành",
+    "cancelled_by_customer": "Khách hủy",
+    "cancelled_by_operator": "Nhà điều hành hủy",
+    "rejected": "Từ chối",
+    "no_show": "Không có mặt"
+  },
+  "serviceTypes": {
+    "airport_transfer": "Đưa đón sân bay",
+    "shared_ride": "Xe ghép theo lịch",
+    "intercity": "Chuyến liên tỉnh",
+    "factory_shuttle": "Đưa đón nhà máy",
+    "shift_shuttle": "Đưa đón theo ca",
+    "private_charter": "Thuê xe riêng",
+    "other": "Khác"
+  },
+  "paymentMethods": {
+    "cash": "Tiền mặt",
+    "bank_transfer": "Chuyển khoản",
+    "office": "Thanh toán tại văn phòng",
+    "other": "Khác"
+  },
+  "safety": {
+    "title": "Cam kết an toàn & hợp pháp",
+    "verifiedOnly": "Chỉ sử dụng đối tác vận tải / tài xế đã được doanh nghiệp xác minh.",
+    "noWhitePlate": "Không phải nền tảng cho xe tư nhân biển trắng nhận khách có thu tiền.",
+    "noFakeLicense": "Không hiển thị tuyên bố “được cấp phép” khi chưa xác minh thông tin thật."
+  }
+}

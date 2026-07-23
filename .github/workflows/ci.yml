@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_APP_NAME: VietGo Japan
+          VITE_APP_URL: https://example.com
+
+      - name: Secret scan (basic)
+        run: |
+          if rg -n "SUPABASE_SERVICE_ROLE_KEY\s*=\s*['\"]?ey" --glob '!**/.git/**' . ; then
+            echo "Possible service role key committed"
+            exit 1
+          fi
+          if rg -n "RESEND_API_KEY\s*=\s*re_" --glob '!**/.git/**' . ; then
+            echo "Possible Resend key committed"
+            exit 1
+          fi
+          echo "Basic secret scan passed"
+
+  # Production deploy is intentionally NOT run on pull_request.
+  # Connect Cloudflare Pages to this repo for main-branch deploys,
+  # or add a separate workflow gated on secrets + main only.

@@ -1,0 +1,4 @@
+# Cloudflare Pages — optional local config
+name = "vietgo-japan"
+compatibility_date = "2026-03-01"
+pages_build_output_dir = "dist"
