@@ -16,6 +16,10 @@ Production-oriented web app for **licensed / verified transport request intake**
 - **Maps:** URL provider (no paid API in MVP)
 - **Payments:** Manual (cash / bank / office) + `PaymentProvider` for future Stripe
 
+## Bắt đầu từ zero (đăng nhập + API keys + deploy)
+
+**Hướng dẫn tiếng Việt từng bước:** [`docs/HUONG_DAN_TU_DAU.md`](docs/HUONG_DAN_TU_DAU.md)
+
 ## Quick start (local UI)
 
 ```bash
@@ -24,6 +28,7 @@ cp .env.example .env.local
 # Fill VITE_SUPABASE_* when backend is ready
 npm run dev
 ```
+
 
 ## Quality gates
 
