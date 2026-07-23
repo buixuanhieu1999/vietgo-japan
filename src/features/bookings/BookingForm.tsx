@@ -16,7 +16,6 @@ import { usePrefectures } from '@/hooks/usePrefectures'
 import { useAirports } from '@/hooks/useAirports'
 import { invokeFunction, tryGetSupabase } from '@/lib/supabase'
 import { mapProvider } from '@/services/map-provider'
-import { useAuth } from '@/providers/AuthProvider'
 import { ExternalLink } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -64,7 +63,6 @@ interface BookingFormProps {
 export function BookingForm({ compact = false, defaultServiceType }: BookingFormProps) {
   const { t, i18n } = useTranslation(['forms', 'common'])
   const navigate = useNavigate()
-  const { user } = useAuth()
   const { data: prefectures = [] } = usePrefectures()
   const { data: airports = [] } = useAirports()
   const [serverError, setServerError] = useState<string | null>(null)
@@ -99,20 +97,24 @@ export function BookingForm({ compact = false, defaultServiceType }: BookingForm
       return
     }
     try {
+      // Never send user_id — Edge Function binds identity from JWT only
       const payload = {
         ...values,
         pickup_prefecture_id: values.pickup_prefecture_id || null,
         dropoff_prefecture_id: values.dropoff_prefecture_id || null,
         airport_id: values.airport_id || null,
-        user_id: user?.id ?? null,
+        idempotency_key: crypto.randomUUID(),
       }
       const res = await invokeFunction<{
         ok: boolean
-        booking: { booking_code: string; id: string }
+        booking: { booking_code: string; id: string; lookup_token?: string }
       }>('create-booking', payload)
       navigate('/dat-xe/thanh-cong', {
         replace: true,
-        state: { bookingCode: res.booking.booking_code },
+        state: {
+          bookingCode: res.booking.booking_code,
+          lookupToken: res.booking.lookup_token,
+        },
       })
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'generic'

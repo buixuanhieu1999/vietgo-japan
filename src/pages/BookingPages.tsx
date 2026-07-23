@@ -37,8 +37,12 @@ export function BookPage() {
 export function BookSuccessPage() {
   const { t } = useTranslation(['pages', 'common'])
   const location = useLocation()
-  const bookingCode =
-    (location.state as { bookingCode?: string } | null)?.bookingCode ?? null
+  const state = location.state as {
+    bookingCode?: string
+    lookupToken?: string
+  } | null
+  const bookingCode = state?.bookingCode ?? null
+  const lookupToken = state?.lookupToken ?? null
 
   return (
     <>
@@ -51,9 +55,17 @@ export function BookSuccessPage() {
           <CardContent className="space-y-4">
             <p className="text-navy-700">{t('book.successBody')}</p>
             {bookingCode ? (
-              <p className="rounded-lg bg-navy-50 px-4 py-3 text-2xl font-bold tracking-wide text-navy-900">
-                {t('book.bookingCode')}: {bookingCode}
-              </p>
+              <div className="space-y-2">
+                <p className="rounded-lg bg-navy-50 px-4 py-3 text-2xl font-bold tracking-wide text-navy-900">
+                  {t('book.bookingCode')}: {bookingCode}
+                </p>
+                {lookupToken ? (
+                  <p className="break-all rounded-lg border border-navy-100 px-3 py-2 text-left text-xs text-navy-600">
+                    Lookup token (giữ riêng tư):{' '}
+                    <span className="font-mono">{lookupToken}</span>
+                  </p>
+                ) : null}
+              </div>
             ) : (
               <Alert variant="warning">
                 Không tìm thấy mã trong phiên hiện tại. Kiểm tra email hoặc tra cứu booking.
@@ -99,9 +111,14 @@ export function LookupPage() {
   const [result, setResult] = useState<LookupResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const form = useForm<LookupBookingValues>({
+  const form = useForm<LookupBookingValues & { lookup_token?: string }>({
     resolver: zodResolver(lookupBookingSchema) as never,
-    defaultValues: { booking_code: '', contact: '', turnstile_token: '' },
+    defaultValues: {
+      booking_code: '',
+      contact: '',
+      turnstile_token: '',
+      lookup_token: '',
+    },
   })
 
   const onSubmit = form.handleSubmit(async (values) => {
@@ -112,7 +129,13 @@ export function LookupPage() {
       return
     }
     try {
-      const res = await invokeFunction<{ booking: LookupResult }>('lookup-booking', values)
+      const token = values.lookup_token?.trim()
+      const res = await invokeFunction<{ booking: LookupResult }>('lookup-booking', {
+        turnstile_token: values.turnstile_token,
+        ...(token
+          ? { lookup_token: token }
+          : { booking_code: values.booking_code, contact: values.contact }),
+      })
       setResult(res.booking)
     } catch {
       setError(t('errors.generic', { ns: 'forms' }))
@@ -129,6 +152,13 @@ export function LookupPage() {
           <CardContent className="space-y-4 py-6">
             {error ? <Alert variant="error">{error}</Alert> : null}
             <form onSubmit={onSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="lookup_token">Lookup token (khuyến nghị)</Label>
+                <Input id="lookup_token" {...form.register('lookup_token')} autoComplete="off" />
+              </div>
+              <p className="text-xs text-navy-500">
+                Hoặc tra cứu bằng mã booking + email/SĐT (có giới hạn tần suất).
+              </p>
               <div>
                 <Label htmlFor="booking_code">{t('lookup.code', { ns: 'forms' })}</Label>
                 <Input id="booking_code" {...form.register('booking_code')} />

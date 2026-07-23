@@ -61,10 +61,18 @@ export const bookingFormSchema = z
 
 export type BookingFormValues = z.infer<typeof bookingFormSchema>
 
-export const lookupBookingSchema = z.object({
-  booking_code: z.string().trim().min(4).max(32),
-  contact: z.string().trim().min(3).max(200),
-  turnstile_token: z.string().optional(),
-})
+export const lookupBookingSchema = z
+  .object({
+    booking_code: z.string().trim().max(32).optional().or(z.literal('')),
+    contact: z.string().trim().max(200).optional().or(z.literal('')),
+    lookup_token: z.string().trim().max(128).optional().or(z.literal('')),
+    turnstile_token: z.string().optional(),
+  })
+  .refine(
+    (d) =>
+      (d.lookup_token && d.lookup_token.length >= 16) ||
+      ((d.booking_code?.length ?? 0) >= 4 && (d.contact?.length ?? 0) >= 3),
+    { message: 'lookup_required', path: ['booking_code'] },
+  )
 
 export type LookupBookingValues = z.infer<typeof lookupBookingSchema>

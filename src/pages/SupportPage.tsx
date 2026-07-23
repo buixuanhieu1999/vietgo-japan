@@ -15,12 +15,10 @@ import { Spinner } from '@/components/ui/spinner'
 import { TurnstileWidget } from '@/components/turnstile/TurnstileWidget'
 import { supportRequestSchema, type SupportRequestValues } from '@/schemas/auth'
 import { invokeFunction, tryGetSupabase } from '@/lib/supabase'
-import { useAuth } from '@/providers/AuthProvider'
 import type { SupportServiceType } from '@/types/database'
 
 export function SupportPage() {
   const { t, i18n } = useTranslation(['pages', 'forms', 'common'])
-  const { user } = useAuth()
   const ja = i18n.language?.startsWith('ja')
   const [done, setDone] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -62,9 +60,10 @@ export function SupportPage() {
       return
     }
     try {
+      // Identity from JWT only — do not send user_id
       const res = await invokeFunction<{
         request: { request_code: string }
-      }>('submit-support', { ...values, user_id: user?.id ?? null })
+      }>('submit-support', { ...values })
       setDone(res.request.request_code)
       form.reset()
     } catch {

@@ -58,10 +58,14 @@ describe('bookingFormSchema', () => {
 })
 
 describe('lookupBookingSchema', () => {
-  it('requires code and contact', () => {
+  it('requires token or code+contact', () => {
     expect(lookupBookingSchema.safeParse({ booking_code: '', contact: '' }).success).toBe(false)
     expect(
       lookupBookingSchema.safeParse({ booking_code: 'VG-ABC12345', contact: 'a@b.com' }).success,
     ).toBe(true)
+    expect(
+      lookupBookingSchema.safeParse({ lookup_token: 'tok_' + 'x'.repeat(20) }).success,
+    ).toBe(true)
   })
 })
+

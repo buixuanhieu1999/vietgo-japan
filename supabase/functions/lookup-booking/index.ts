@@ -1,72 +1,94 @@
-import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts'
+import {
+  errorResponse,
+  jsonResponse,
+  optionsResponse,
+} from '../_shared/cors.ts'
 import { verifyTurnstile } from '../_shared/turnstile.ts'
 import { createServiceClient } from '../_shared/supabase.ts'
+import { checkRateLimit, clientSubject } from '../_shared/rate-limit.ts'
 
 interface LookupPayload {
-  booking_code: string
-  contact: string
+  booking_code?: string
+  contact?: string
+  lookup_token?: string
   turnstile_token?: string
 }
 
-// Simple in-memory rate limit per isolate (best-effort)
-const hits = new Map<string, { count: number; reset: number }>()
-
-function rateLimit(key: string, limit = 10, windowMs = 60_000): boolean {
-  const now = Date.now()
-  const entry = hits.get(key)
-  if (!entry || entry.reset < now) {
-    hits.set(key, { count: 1, reset: now + windowMs })
-    return true
-  }
-  if (entry.count >= limit) return false
-  entry.count += 1
-  return true
-}
-
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
-  if (req.method !== 'POST') {
-    return errorResponse('method_not_allowed', 405)
-  }
+  if (req.method === 'OPTIONS') return optionsResponse(req)
+  if (req.method !== 'POST') return errorResponse(req, 'method_not_allowed', 405)
 
   try {
-    const ip = req.headers.get('cf-connecting-ip') ?? 'unknown'
-    if (!rateLimit(`lookup:${ip}`)) {
-      return errorResponse('rate_limited', 429, 'rate_limited')
-    }
-
     const payload = (await req.json()) as LookupPayload
-    if (!payload.booking_code?.trim() || !payload.contact?.trim()) {
-      return errorResponse('invalid_payload', 400)
+    const rl = await checkRateLimit({
+      bucket: 'lookup_booking',
+      subject: clientSubject(req),
+      limit: 10,
+      windowSeconds: 300,
+    })
+    if (!rl.allowed) return errorResponse(req, 'rate_limited', 429, 'rate_limited')
+
+    let hostname: string | null = null
+    try {
+      const o = req.headers.get('Origin')
+      if (o) hostname = new URL(o).hostname
+    } catch {
+      /* ignore */
     }
 
-    const turnstile = await verifyTurnstile(payload.turnstile_token, ip)
+    const turnstile = await verifyTurnstile(
+      payload.turnstile_token,
+      req.headers.get('cf-connecting-ip'),
+      hostname,
+    )
     if (!turnstile.success) {
-      return errorResponse('turnstile_verification_failed', 403, turnstile.error)
+      return errorResponse(req, 'turnstile_verification_failed', 403, turnstile.error)
     }
 
     const supabase = createServiceClient()
+    const token = payload.lookup_token?.trim()
+    const code = payload.booking_code?.trim().toUpperCase()
+    const contact = payload.contact?.trim()
+
+    // Prefer high-entropy lookup_token when provided
+    if (token && token.length >= 16) {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(
+          'id, booking_code, status, service_type, pickup_address, dropoff_address, pickup_date, pickup_time, passenger_count, payment_status, quoted_price_jpy, created_at',
+        )
+        .eq('lookup_token', token)
+        .is('deleted_at', null)
+        .maybeSingle()
+      if (error) {
+        console.error('lookup_token_failed', error.code)
+        return errorResponse(req, 'lookup_failed', 500)
+      }
+      if (!data) return errorResponse(req, 'not_found', 404, 'not_found')
+      return jsonResponse(req, { ok: true, booking: data })
+    }
+
+    if (!code || !contact) {
+      return errorResponse(req, 'invalid_payload', 400)
+    }
+
+    // Code + contact still available; durable rate limit applies
     const { data, error } = await supabase.rpc('lookup_booking', {
-      p_booking_code: payload.booking_code.trim().toUpperCase(),
-      p_contact: payload.contact.trim(),
+      p_booking_code: code,
+      p_contact: contact,
     })
 
     if (error) {
       console.error('lookup_failed', error.code)
-      return errorResponse('lookup_failed', 500)
+      return errorResponse(req, 'lookup_failed', 500)
     }
 
     const row = Array.isArray(data) ? data[0] : data
-    if (!row) {
-      // Same response shape timing — do not reveal which field failed
-      return errorResponse('not_found', 404, 'not_found')
-    }
+    if (!row) return errorResponse(req, 'not_found', 404, 'not_found')
 
-    return jsonResponse({ ok: true, booking: row })
+    return jsonResponse(req, { ok: true, booking: row })
   } catch (e) {
     console.error('lookup_booking_error', e instanceof Error ? e.message : 'unknown')
-    return errorResponse('internal_error', 500)
+    return errorResponse(req, 'internal_error', 500)
   }
 })

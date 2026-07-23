@@ -1,7 +1,13 @@
-import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts'
+import {
+  errorResponse,
+  jsonResponse,
+  optionsResponse,
+} from '../_shared/cors.ts'
 import { verifyTurnstile } from '../_shared/turnstile.ts'
 import { createServiceClient } from '../_shared/supabase.ts'
 import { bookingConfirmationEmail, getEmailProvider } from '../_shared/email.ts'
+import { getAuthUser } from '../_shared/auth.ts'
+import { checkRateLimit, clientSubject } from '../_shared/rate-limit.ts'
 
 const SERVICE_TYPES = new Set([
   'airport_transfer',
@@ -49,6 +55,8 @@ interface BookingPayload {
   terms_accepted: boolean
   payment_method?: string | null
   turnstile_token?: string
+  idempotency_key?: string
+  /** @deprecated ignored — identity from JWT only */
   user_id?: string | null
 }
 
@@ -76,37 +84,89 @@ function validate(payload: BookingPayload): string | null {
   const total = Number(payload.passenger_count)
   if (!Number.isFinite(total) || total < 1 || total > 50) return 'invalid_passenger_count'
   if (adults + children !== total) return 'passenger_sum_mismatch'
-  // Basic JP phone: digits, +, spaces, dashes
   if (!/^[0-9+\-\s()]{8,20}$/.test(payload.contact_phone.trim())) {
     return 'invalid_phone'
   }
   return null
 }
 
+function stableHash(payload: BookingPayload): string {
+  const keys = [
+    payload.service_type,
+    payload.pickup_address?.trim(),
+    payload.dropoff_address?.trim(),
+    payload.pickup_date,
+    payload.pickup_time,
+    payload.passenger_count,
+    payload.contact_email?.trim().toLowerCase(),
+    payload.contact_phone?.trim(),
+  ].join('|')
+  let h = 0
+  for (let i = 0; i < keys.length; i++) h = (Math.imul(31, h) + keys.charCodeAt(i)) | 0
+  return (h >>> 0).toString(16)
+}
+
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
-  if (req.method !== 'POST') {
-    return errorResponse('method_not_allowed', 405)
-  }
+  if (req.method === 'OPTIONS') return optionsResponse(req)
+  if (req.method !== 'POST') return errorResponse(req, 'method_not_allowed', 405)
 
   try {
     const payload = (await req.json()) as BookingPayload
     const validationError = validate(payload)
     if (validationError) {
-      return errorResponse(validationError, 400, validationError)
+      return errorResponse(req, validationError, 400, validationError)
     }
+
+    const subject = clientSubject(req, payload.contact_email)
+    const rl = await checkRateLimit({
+      bucket: 'create_booking',
+      subject,
+      limit: 8,
+      windowSeconds: 600,
+    })
+    if (!rl.allowed) {
+      return errorResponse(req, 'rate_limited', 429, 'rate_limited')
+    }
+
+    const originHost = (() => {
+      try {
+        const o = req.headers.get('Origin')
+        if (o) return new URL(o).hostname
+      } catch {
+        /* ignore */
+      }
+      return null
+    })()
 
     const turnstile = await verifyTurnstile(
       payload.turnstile_token,
       req.headers.get('cf-connecting-ip'),
+      originHost,
     )
     if (!turnstile.success) {
-      return errorResponse('turnstile_verification_failed', 403, turnstile.error)
+      return errorResponse(req, 'turnstile_verification_failed', 403, turnstile.error)
     }
 
+    // Identity ONLY from verified JWT — never payload.user_id
+    const authUser = await getAuthUser(req)
+    const userId = authUser?.id ?? null
+
     const supabase = createServiceClient()
+    const idemKey =
+      (req.headers.get('x-idempotency-key') ?? payload.idempotency_key ?? '').trim() || null
+    const payloadHash = stableHash(payload)
+
+    if (idemKey) {
+      const { data: existing } = await supabase
+        .from('idempotency_keys')
+        .select('response_body, resource_id')
+        .eq('key', idemKey)
+        .eq('endpoint', 'create-booking')
+        .maybeSingle()
+      if (existing?.response_body) {
+        return jsonResponse(req, existing.response_body)
+      }
+    }
 
     const insertRow = {
       service_type: payload.service_type,
@@ -143,24 +203,39 @@ Deno.serve(async (req) => {
       terms_accepted: true,
       payment_method: payload.payment_method || 'cash',
       payment_status: 'unpaid',
-      user_id: payload.user_id || null,
+      user_id: userId,
     }
 
     const { data, error } = await supabase
       .from('bookings')
       .insert(insertRow)
-      .select('id, booking_code, status, pickup_date, created_at')
+      .select('id, booking_code, status, pickup_date, created_at, lookup_token')
       .single()
 
     if (error || !data) {
       console.error('booking_insert_failed', error?.code ?? 'unknown')
-      return errorResponse('booking_create_failed', 500, 'booking_create_failed')
+      return errorResponse(req, 'booking_create_failed', 500, 'booking_create_failed')
     }
 
-    // Emails — non-fatal if provider fails
+    // Outbox for durable email (worker / manual poll later)
+    await supabase.from('outbox_events').insert({
+      event_type: 'booking.confirmation_email',
+      payload: {
+        booking_id: data.id,
+        booking_code: data.booking_code,
+        contact_email: insertRow.contact_email,
+        contact_name: insertRow.contact_name,
+        pickup_date: insertRow.pickup_date,
+        pickup_address: insertRow.pickup_address,
+        dropoff_address: insertRow.dropoff_address,
+      },
+      status: 'pending',
+    })
+
+    // Best-effort immediate send + outbox remains for retry path
     try {
       const provider = getEmailProvider()
-      const appUrl = Deno.env.get('APP_URL') ?? Deno.env.get('VITE_APP_URL') ?? 'https://example.com'
+      const appUrl = Deno.env.get('APP_URL') ?? 'https://vietgo-japan.pages.dev'
       const mail = bookingConfirmationEmail({
         bookingCode: data.booking_code,
         contactName: insertRow.contact_name,
@@ -170,6 +245,8 @@ Deno.serve(async (req) => {
         appUrl,
       })
       mail.to = insertRow.contact_email
+      // Include lookup path with token (not on public URL of form pages)
+      mail.text = `${mail.text}\n\nLookup token (keep private): ${data.lookup_token}`
       await provider.send(mail)
 
       const adminEmail = Deno.env.get('ADMIN_NOTIFICATION_EMAIL')
@@ -177,24 +254,30 @@ Deno.serve(async (req) => {
         await provider.send({
           to: adminEmail,
           subject: `[VietGo] Booking mới ${data.booking_code}`,
-          html: `<p>Booking mới: <strong>${data.booking_code}</strong></p>
-                 <p>Dịch vụ: ${insertRow.service_type}</p>
-                 <p>Ngày: ${insertRow.pickup_date}</p>`,
-          text: `Booking mới ${data.booking_code} — ${insertRow.service_type} — ${insertRow.pickup_date}`,
+          html: `<p>Booking mới: <strong>${data.booking_code}</strong></p>`,
+          text: `Booking mới ${data.booking_code}`,
         })
       }
+
+      await supabase
+        .from('outbox_events')
+        .update({ status: 'sent', processed_at: new Date().toISOString() })
+        .eq('event_type', 'booking.confirmation_email')
+        .contains('payload', { booking_id: data.id })
     } catch (e) {
       console.error('email_send_failed', e instanceof Error ? e.message : 'unknown')
     }
 
-    await supabase.rpc('write_audit_log', {
+    // Trusted audit only via SECURITY DEFINER RPC (service role as actor null)
+    await supabase.rpc('write_audit_log_trusted', {
       p_action: 'booking.created',
       p_entity_type: 'booking',
       p_entity_id: data.id,
       p_metadata: { booking_code: data.booking_code, source: 'edge_create_booking' },
+      p_actor_id: userId,
     })
 
-    return jsonResponse({
+    const responseBody = {
       ok: true,
       booking: {
         id: data.id,
@@ -202,10 +285,25 @@ Deno.serve(async (req) => {
         status: data.status,
         pickup_date: data.pickup_date,
         created_at: data.created_at,
+        // Return lookup token only in API response body (not URL)
+        lookup_token: data.lookup_token,
       },
-    })
+    }
+
+    if (idemKey) {
+      await supabase.from('idempotency_keys').upsert({
+        key: idemKey,
+        endpoint: 'create-booking',
+        payload_hash: payloadHash,
+        resource_id: data.id,
+        response_body: responseBody,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      })
+    }
+
+    return jsonResponse(req, responseBody)
   } catch (e) {
     console.error('create_booking_error', e instanceof Error ? e.message : 'unknown')
-    return errorResponse('internal_error', 500, 'internal_error')
+    return errorResponse(req, 'internal_error', 500, 'internal_error')
   }
 })

@@ -1,7 +1,13 @@
-import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts'
+import {
+  errorResponse,
+  jsonResponse,
+  optionsResponse,
+} from '../_shared/cors.ts'
 import { verifyTurnstile } from '../_shared/turnstile.ts'
 import { createServiceClient } from '../_shared/supabase.ts'
 import { getEmailProvider } from '../_shared/email.ts'
+import { getAuthUser } from '../_shared/auth.ts'
+import { checkRateLimit, clientSubject } from '../_shared/rate-limit.ts'
 
 interface SupportPayload {
   service_type_id: string
@@ -12,17 +18,14 @@ interface SupportPayload {
   contact_email: string
   privacy_accepted: boolean
   priority?: string
-  user_id?: string | null
   turnstile_token?: string
+  /** @deprecated ignored */
+  user_id?: string | null
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
-  if (req.method !== 'POST') {
-    return errorResponse('method_not_allowed', 405)
-  }
+  if (req.method === 'OPTIONS') return optionsResponse(req)
+  if (req.method !== 'POST') return errorResponse(req, 'method_not_allowed', 405)
 
   try {
     const payload = (await req.json()) as SupportPayload
@@ -35,16 +38,36 @@ Deno.serve(async (req) => {
       !payload.contact_email?.includes('@') ||
       !payload.privacy_accepted
     ) {
-      return errorResponse('invalid_payload', 400)
+      return errorResponse(req, 'invalid_payload', 400)
+    }
+
+    const rl = await checkRateLimit({
+      bucket: 'submit_support',
+      subject: clientSubject(req, payload.contact_email),
+      limit: 6,
+      windowSeconds: 600,
+    })
+    if (!rl.allowed) return errorResponse(req, 'rate_limited', 429, 'rate_limited')
+
+    let hostname: string | null = null
+    try {
+      const o = req.headers.get('Origin')
+      if (o) hostname = new URL(o).hostname
+    } catch {
+      /* ignore */
     }
 
     const turnstile = await verifyTurnstile(
       payload.turnstile_token,
       req.headers.get('cf-connecting-ip'),
+      hostname,
     )
     if (!turnstile.success) {
-      return errorResponse('turnstile_verification_failed', 403, turnstile.error)
+      return errorResponse(req, 'turnstile_verification_failed', 403, turnstile.error)
     }
+
+    const authUser = await getAuthUser(req)
+    const userId = authUser?.id ?? null
 
     const supabase = createServiceClient()
     const { data, error } = await supabase
@@ -59,14 +82,14 @@ Deno.serve(async (req) => {
         privacy_accepted: true,
         priority: payload.priority ?? 'normal',
         status: 'submitted',
-        user_id: payload.user_id || null,
+        user_id: userId,
       })
       .select('id, request_code, status')
       .single()
 
     if (error || !data) {
       console.error('support_insert_failed', error?.code)
-      return errorResponse('support_create_failed', 500)
+      return errorResponse(req, 'support_create_failed', 500)
     }
 
     try {
@@ -75,8 +98,8 @@ Deno.serve(async (req) => {
         to: payload.contact_email.trim().toLowerCase(),
         subject: `[VietGo Japan] Đã nhận yêu cầu hỗ trợ ${data.request_code}`,
         html: `<p>Chúng tôi đã nhận yêu cầu <strong>${data.request_code}</strong>.</p>
-               <p>Loại hỗ trợ: hỗ trợ ngôn ngữ / chuẩn bị tài liệu / hướng dẫn thủ tục — không phải tư vấn pháp lý.</p>`,
-        text: `Đã nhận yêu cầu ${data.request_code}. Không phải tư vấn pháp lý.`,
+               <p>Hỗ trợ ngôn ngữ / chuẩn bị tài liệu / hướng dẫn — không phải tư vấn pháp lý.</p>`,
+        text: `Đã nhận yêu cầu ${data.request_code}.`,
       })
       const adminEmail = Deno.env.get('ADMIN_NOTIFICATION_EMAIL')
       if (adminEmail) {
@@ -91,7 +114,7 @@ Deno.serve(async (req) => {
       // non-fatal
     }
 
-    return jsonResponse({
+    return jsonResponse(req, {
       ok: true,
       request: {
         id: data.id,
@@ -101,6 +124,6 @@ Deno.serve(async (req) => {
     })
   } catch (e) {
     console.error('submit_support_error', e instanceof Error ? e.message : 'unknown')
-    return errorResponse('internal_error', 500)
+    return errorResponse(req, 'internal_error', 500)
   }
 })
