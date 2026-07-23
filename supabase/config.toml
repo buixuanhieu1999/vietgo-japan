@@ -25,10 +25,6 @@ enabled = true
 enabled = true
 port = 54323
 
-[inbucket]
-enabled = true
-port = 54324
-
 [storage]
 enabled = true
 file_size_limit = "10MiB"
@@ -46,5 +42,15 @@ enable_signup = true
 double_confirm_changes = true
 enable_confirmations = true
 
-[functions]
-verify_jwt = true
+# Guest-callable functions: JWT verification disabled (protected by Turnstile server-side)
+[functions.create-booking]
+verify_jwt = false
+
+[functions.submit-contact]
+verify_jwt = false
+
+[functions.submit-support]
+verify_jwt = false
+
+[functions.lookup-booking]
+verify_jwt = false

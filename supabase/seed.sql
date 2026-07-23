@@ -76,10 +76,10 @@ SELECT
   op.id, dp.id, r.origin_label, r.destination_label,
   r.duration, r.price, true, true, r.sort_order
 FROM (VALUES
-  ('NGO-AICHI', 'Centrair → khu vực Aichi', 'セントレア → 愛知県内', 'Đưa đón từ sân bay Chubu tới các khu vực tại Aichi (giá tham khảo).', '23', '23', 'Chubu Centrair (NGO)', 'Aichi', 60, NULL, 1),
-  ('NGO-GIFU', 'Centrair → Gifu', 'セントレア → 岐阜', 'Xe ghép / riêng từ Centrair về Gifu (giá tham khảo).', '23', '21', 'Chubu Centrair (NGO)', 'Gifu', 90, NULL, 2),
-  ('NGO-MIE', 'Centrair → Mie', 'セントレア → 三重', 'Đưa đón Centrair – Mie (giá tham khảo).', '23', '24', 'Chubu Centrair (NGO)', 'Mie', 100, NULL, 3),
-  ('NAGOYA-FACTORY', 'Nagoya → nhà máy (demo)', '名古屋 → 工場（デモ）', 'Tuyến demo đưa công nhân / nhà máy quanh khu vực Tokai.', '23', '23', 'Nagoya / ga tàu', 'Nhà máy (khu vực Aichi)', 45, NULL, 4)
+  ('NGO-AICHI', 'Centrair → khu vực Aichi', 'セントレア → 愛知県内', 'Đưa đón từ sân bay Chubu tới các khu vực tại Aichi (giá tham khảo).', '23', '23', 'Chubu Centrair (NGO)', 'Aichi', 60, NULL::integer, 1),
+  ('NGO-GIFU', 'Centrair → Gifu', 'セントレア → 岐阜', 'Xe ghép / riêng từ Centrair về Gifu (giá tham khảo).', '23', '21', 'Chubu Centrair (NGO)', 'Gifu', 90, NULL::integer, 2),
+  ('NGO-MIE', 'Centrair → Mie', 'セントレア → 三重', 'Đưa đón Centrair – Mie (giá tham khảo).', '23', '24', 'Chubu Centrair (NGO)', 'Mie', 100, NULL::integer, 3),
+  ('NAGOYA-FACTORY', 'Nagoya → nhà máy (demo)', '名古屋 → 工場（デモ）', 'Tuyến demo đưa công nhân / nhà máy quanh khu vực Tokai.', '23', '23', 'Nagoya / ga tàu', 'Nhà máy (khu vực Aichi)', 45, NULL::integer, 4)
 ) AS r(code, name_vi, name_ja, description_vi, origin_code, dest_code, origin_label, destination_label, duration, price, sort_order)
 JOIN public.prefectures op ON op.code = r.origin_code
 JOIN public.prefectures dp ON dp.code = r.dest_code

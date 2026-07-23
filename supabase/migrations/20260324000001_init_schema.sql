@@ -11,105 +11,53 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ENUMS
 -- ============================================================
 
-CREATE TYPE public.app_role AS ENUM (
-  'customer',
-  'support_agent',
-  'dispatcher',
-  'driver',
-  'admin',
-  'super_admin'
-);
+DO $$ BEGIN CREATE TYPE public.app_role AS ENUM (
+  'customer', 'support_agent', 'dispatcher', 'driver', 'admin', 'super_admin'
+); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE public.verification_status AS ENUM (
-  'pending',
-  'verified',
-  'suspended',
-  'rejected'
-);
+DO $$ BEGIN CREATE TYPE public.verification_status AS ENUM (
+  'pending', 'verified', 'suspended', 'rejected'
+); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE public.booking_status AS ENUM (
-  'draft',
-  'requested',
-  'reviewing',
-  'quoted',
-  'awaiting_customer_confirmation',
-  'confirmed',
-  'assigned',
-  'driver_en_route',
-  'picked_up',
-  'in_transit',
-  'completed',
-  'cancelled_by_customer',
-  'cancelled_by_operator',
-  'rejected',
-  'no_show'
-);
+DO $$ BEGIN CREATE TYPE public.booking_status AS ENUM (
+  'draft', 'requested', 'reviewing', 'quoted', 'awaiting_customer_confirmation',
+  'confirmed', 'assigned', 'driver_en_route', 'picked_up', 'in_transit', 'completed',
+  'cancelled_by_customer', 'cancelled_by_operator', 'rejected', 'no_show'
+); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE public.service_type AS ENUM (
-  'airport_transfer',
-  'shared_ride',
-  'intercity',
-  'factory_shuttle',
-  'shift_shuttle',
-  'private_charter',
-  'other'
-);
+DO $$ BEGIN CREATE TYPE public.service_type AS ENUM (
+  'airport_transfer', 'shared_ride', 'intercity', 'factory_shuttle',
+  'shift_shuttle', 'private_charter', 'other'
+); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE public.trip_status AS ENUM (
-  'draft',
-  'scheduled',
-  'boarding',
-  'in_progress',
-  'completed',
-  'cancelled'
-);
+DO $$ BEGIN CREATE TYPE public.trip_status AS ENUM (
+  'draft', 'scheduled', 'boarding', 'in_progress', 'completed', 'cancelled'
+); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE public.payment_method AS ENUM (
-  'cash',
-  'bank_transfer',
-  'office',
-  'other'
-);
+DO $$ BEGIN CREATE TYPE public.payment_method AS ENUM (
+  'cash', 'bank_transfer', 'office', 'other'
+); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE public.payment_status AS ENUM (
-  'unpaid',
-  'pending_verification',
-  'paid',
-  'refunded',
-  'partial',
-  'cancelled'
-);
+DO $$ BEGIN CREATE TYPE public.payment_status AS ENUM (
+  'unpaid', 'pending_verification', 'paid', 'refunded', 'partial', 'cancelled'
+); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE public.support_request_status AS ENUM (
-  'submitted',
-  'reviewing',
-  'waiting_for_documents',
-  'documents_received',
-  'in_progress',
-  'appointment_scheduled',
-  'completed',
-  'cancelled',
-  'rejected'
-);
+DO $$ BEGIN CREATE TYPE public.support_request_status AS ENUM (
+  'submitted', 'reviewing', 'waiting_for_documents', 'documents_received',
+  'in_progress', 'appointment_scheduled', 'completed', 'cancelled', 'rejected'
+); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE public.priority_level AS ENUM (
-  'low',
-  'normal',
-  'high',
-  'urgent'
-);
+DO $$ BEGIN CREATE TYPE public.priority_level AS ENUM (
+  'low', 'normal', 'high', 'urgent'
+); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE public.ride_preference AS ENUM (
-  'shared',
-  'private',
-  'either'
-);
+DO $$ BEGIN CREATE TYPE public.ride_preference AS ENUM (
+  'shared', 'private', 'either'
+); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE public.terminal_type AS ENUM (
-  'international',
-  'domestic',
-  'unknown'
-);
+DO $$ BEGIN CREATE TYPE public.terminal_type AS ENUM (
+  'international', 'domestic', 'unknown'
+); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- ============================================================
 -- HELPERS
@@ -141,7 +89,53 @@ BEGIN
 END;
 $$;
 
--- Role helpers (SECURITY DEFINER, no client-writable role source)
+-- ============================================================
+-- TABLES
+-- ============================================================
+
+
+-- profiles (1:1 with auth.users)
+CREATE TABLE public.profiles (
+  id uuid PRIMARY KEY REFERENCES auth.users (id) ON DELETE CASCADE,
+  full_name text,
+  phone text,
+  email text,
+  line_id text,
+  preferred_language text NOT NULL DEFAULT 'vi' CHECK (preferred_language IN ('vi', 'ja', 'en')),
+  avatar_url text,
+  notes_internal text,
+  is_active boolean NOT NULL DEFAULT true,
+  deleted_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TRIGGER profiles_updated_at
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- user_roles — roles NEVER stored only in JWT metadata for authorization
+CREATE TABLE public.user_roles (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES public.profiles (id) ON DELETE CASCADE,
+  role public.app_role NOT NULL,
+  granted_by uuid REFERENCES public.profiles (id),
+  granted_at timestamptz NOT NULL DEFAULT now(),
+  revoked_at timestamptz,
+  notes text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (user_id, role)
+);
+
+CREATE INDEX idx_user_roles_user ON public.user_roles (user_id) WHERE revoked_at IS NULL;
+CREATE INDEX idx_user_roles_role ON public.user_roles (role) WHERE revoked_at IS NULL;
+
+CREATE TRIGGER user_roles_updated_at
+  BEFORE UPDATE ON public.user_roles
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- Role helpers (SECURITY DEFINER) — after user_roles exists
 CREATE OR REPLACE FUNCTION public.has_role(check_role public.app_role)
 RETURNS boolean
 LANGUAGE sql
@@ -198,51 +192,6 @@ SET search_path = public
 AS $$
   SELECT public.has_any_role('admin'::public.app_role, 'super_admin'::public.app_role);
 $$;
-
--- ============================================================
--- TABLES
--- ============================================================
-
--- profiles (1:1 with auth.users)
-CREATE TABLE public.profiles (
-  id uuid PRIMARY KEY REFERENCES auth.users (id) ON DELETE CASCADE,
-  full_name text,
-  phone text,
-  email text,
-  line_id text,
-  preferred_language text NOT NULL DEFAULT 'vi' CHECK (preferred_language IN ('vi', 'ja', 'en')),
-  avatar_url text,
-  notes_internal text,
-  is_active boolean NOT NULL DEFAULT true,
-  deleted_at timestamptz,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE TRIGGER profiles_updated_at
-  BEFORE UPDATE ON public.profiles
-  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
--- user_roles — roles NEVER stored only in JWT metadata for authorization
-CREATE TABLE public.user_roles (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL REFERENCES public.profiles (id) ON DELETE CASCADE,
-  role public.app_role NOT NULL,
-  granted_by uuid REFERENCES public.profiles (id),
-  granted_at timestamptz NOT NULL DEFAULT now(),
-  revoked_at timestamptz,
-  notes text,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (user_id, role)
-);
-
-CREATE INDEX idx_user_roles_user ON public.user_roles (user_id) WHERE revoked_at IS NULL;
-CREATE INDEX idx_user_roles_role ON public.user_roles (role) WHERE revoked_at IS NULL;
-
-CREATE TRIGGER user_roles_updated_at
-  BEFORE UPDATE ON public.user_roles
-  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- transport_operators (licensed carriers)
 CREATE TABLE public.transport_operators (
@@ -589,7 +538,7 @@ CREATE TABLE public.bookings (
   assigned_driver_id uuid REFERENCES public.drivers (id),
   assigned_vehicle_id uuid REFERENCES public.vehicles (id),
   assigned_operator_id uuid REFERENCES public.transport_operators (id),
-  lookup_token text NOT NULL DEFAULT encode(gen_random_bytes(16), 'hex'),
+  lookup_token text NOT NULL DEFAULT encode(extensions.gen_random_bytes(16), 'hex'),
   cancelled_at timestamptz,
   cancellation_reason text,
   completed_at timestamptz,
@@ -837,7 +786,7 @@ CREATE TRIGGER support_service_types_updated_at
 
 CREATE TABLE public.support_requests (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  request_code text NOT NULL UNIQUE DEFAULT ('SR-' || upper(substr(encode(gen_random_bytes(6), 'hex'), 1, 8))),
+  request_code text NOT NULL UNIQUE DEFAULT ('SR-' || upper(substr(encode(extensions.gen_random_bytes(6), 'hex'), 1, 8))),
   user_id uuid REFERENCES public.profiles (id),
   service_type_id uuid NOT NULL REFERENCES public.support_service_types (id),
   title text NOT NULL,
