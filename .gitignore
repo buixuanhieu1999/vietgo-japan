@@ -60,3 +60,6 @@ Desktop.ini
 *.tsbuildinfo
 .turbo
 .cache
+
+.deploy-secrets/
+
