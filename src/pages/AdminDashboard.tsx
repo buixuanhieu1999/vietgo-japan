@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { PageMeta } from '@/components/seo/PageMeta'
@@ -74,6 +75,18 @@ export function AdminHomePage() {
 
 export function AdminBookingsPage() {
   const { t } = useTranslation(['pages', 'common'])
+  const [suggestFor, setSuggestFor] = useState<string | null>(null)
+  const [suggestions, setSuggestions] = useState<
+    Array<{
+      trip_id: string
+      departure_date: string
+      seats_available: number
+      distance_to_pickup_m: number | null
+      operator_verified: boolean
+    }>
+  >([])
+  const [suggestError, setSuggestError] = useState<string | null>(null)
+
   const { data = [], isLoading, isError } = useQuery({
     queryKey: ['admin-bookings'],
     queryFn: async () => {
@@ -91,10 +104,32 @@ export function AdminBookingsPage() {
     },
   })
 
+  const runSuggest = async (bookingId: string) => {
+    setSuggestFor(bookingId)
+    setSuggestError(null)
+    setSuggestions([])
+    const supabase = tryGetSupabase()
+    if (!supabase) return
+    const { data: rows, error } = await supabase.rpc('suggest_trips_for_booking', {
+      p_booking_id: bookingId,
+      p_max_distance_m: 80000,
+      p_limit: 8,
+    })
+    if (error) {
+      setSuggestError(error.message)
+      return
+    }
+    setSuggestions((rows ?? []) as typeof suggestions)
+  }
+
   return (
     <>
       <PageMeta title={t('admin.bookings')} path="/quan-tri/booking" noIndex />
       <h1 className="text-2xl font-bold">{t('admin.bookings')}</h1>
+      <Alert className="mt-4" variant="info">
+        Gợi ý chuyến (PostGIS + ràng buộc cứng: seats, luggage, verified operator/driver/vehicle). Không
+        dùng LLM để ghép chuyến.
+      </Alert>
       {isLoading ? <Spinner className="mt-6" /> : null}
       {isError ? (
         <Alert variant="error" className="mt-4">
@@ -110,6 +145,7 @@ export function AdminBookingsPage() {
               <th className="px-3 py-2">Date</th>
               <th className="px-3 py-2">Contact</th>
               <th className="px-3 py-2">Pickup</th>
+              <th className="px-3 py-2">Match</th>
             </tr>
           </thead>
           <tbody>
@@ -126,6 +162,15 @@ export function AdminBookingsPage() {
                   <span className="text-navy-500">{b.contact_phone}</span>
                 </td>
                 <td className="px-3 py-2 max-w-xs truncate">{b.pickup_address}</td>
+                <td className="px-3 py-2">
+                  <button
+                    type="button"
+                    className="text-brand-700 underline"
+                    onClick={() => void runSuggest(b.id)}
+                  >
+                    Gợi ý trip
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -136,6 +181,32 @@ export function AdminBookingsPage() {
           </div>
         ) : null}
       </div>
+      {suggestFor ? (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-base">Gợi ý deterministic cho booking</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {suggestError ? <Alert variant="error">{suggestError}</Alert> : null}
+            {suggestions.length === 0 && !suggestError ? (
+              <p className="text-sm text-navy-600">Không có trip phù hợp (hoặc chưa có tọa độ/chuyến).</p>
+            ) : (
+              <ul className="space-y-2 text-sm">
+                {suggestions.map((s) => (
+                  <li key={s.trip_id} className="rounded border border-navy-100 px-3 py-2">
+                    Trip {s.trip_id.slice(0, 8)}… · {formatDate(s.departure_date)} · seats{' '}
+                    {s.seats_available}
+                    {s.distance_to_pickup_m != null
+                      ? ` · ~${Math.round(s.distance_to_pickup_m / 1000)} km`
+                      : ''}
+                    {s.operator_verified ? ' · operator ✓' : ''}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
     </>
   )
 }

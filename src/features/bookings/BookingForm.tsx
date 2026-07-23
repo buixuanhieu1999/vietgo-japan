@@ -16,6 +16,8 @@ import { usePrefectures } from '@/hooks/usePrefectures'
 import { useAirports } from '@/hooks/useAirports'
 import { invokeFunction, tryGetSupabase } from '@/lib/supabase'
 import { mapProvider } from '@/services/map-provider'
+import { NlBookingDraft } from '@/features/ai/NlBookingDraft'
+import type { BookingDraft } from '@/services/nl-booking-parser'
 import { ExternalLink } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -90,6 +92,19 @@ export function BookingForm({ compact = false, defaultServiceType }: BookingForm
   const dropoffAddress = watch('dropoff_address')
   const lang = i18n.language?.startsWith('ja') ? 'ja' : 'vi'
 
+  const applyDraft = (draft: BookingDraft) => {
+    if (draft.service_type) setValue('service_type', draft.service_type)
+    if (draft.pickup_address) setValue('pickup_address', draft.pickup_address)
+    if (draft.dropoff_address) setValue('dropoff_address', draft.dropoff_address)
+    if (draft.pickup_date) setValue('pickup_date', draft.pickup_date)
+    if (draft.pickup_time) setValue('pickup_time', draft.pickup_time)
+    if (draft.passenger_count != null) setValue('passenger_count', draft.passenger_count)
+    if (draft.adults_count != null) setValue('adults_count', draft.adults_count)
+    if (draft.children_count != null) setValue('children_count', draft.children_count)
+    if (draft.large_luggage != null) setValue('large_luggage', draft.large_luggage)
+    if (draft.notes) setValue('customer_notes', draft.notes)
+  }
+
   const onSubmit = handleSubmit(async (values) => {
     setServerError(null)
     if (!tryGetSupabase()) {
@@ -129,6 +144,8 @@ export function BookingForm({ compact = false, defaultServiceType }: BookingForm
   return (
     <form onSubmit={onSubmit} className="space-y-5" noValidate>
       {serverError ? <Alert variant="error">{serverError}</Alert> : null}
+
+      {!compact ? <NlBookingDraft onApply={applyDraft} /> : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">

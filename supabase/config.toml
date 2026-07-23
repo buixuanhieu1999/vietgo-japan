@@ -54,3 +54,6 @@ verify_jwt = false
 
 [functions.lookup-booking]
 verify_jwt = false
+
+[functions.geoapify-proxy]
+verify_jwt = false

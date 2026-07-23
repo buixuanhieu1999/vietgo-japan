@@ -8,6 +8,8 @@ import { env } from '@/lib/env'
 import { Alert } from '@/components/ui/alert'
 import type { ContentPage } from '@/types/database'
 import { Spinner } from '@/components/ui/spinner'
+import { MapPreview } from '@/components/map/MapPreview'
+import { FaqAssistant } from '@/features/ai/FaqAssistant'
 
 export function AboutPage() {
   const { t } = useTranslation('pages')
@@ -33,24 +35,32 @@ export function OfficePage() {
       <div className="container-app py-10">
         <h1 className="text-3xl font-bold">{t('office.title')}</h1>
         <p className="mt-4 text-lg text-navy-800">{t('office.city')}</p>
-        <dl className="mt-6 max-w-xl space-y-3 text-navy-700">
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <dl className="max-w-xl space-y-3 text-navy-700">
+            <div>
+              <dt className="font-semibold">Address</dt>
+              <dd>{env.contactAddress || t('office.addressPlaceholder')}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold">Phone</dt>
+              <dd>{env.contactPhone || '[Phone — admin update]'}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold">Email</dt>
+              <dd>{env.contactEmail || '[Email — admin update]'}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold">Hours</dt>
+              <dd>{t('office.hoursPlaceholder')}</dd>
+            </div>
+          </dl>
           <div>
-            <dt className="font-semibold">Address</dt>
-            <dd>{env.contactAddress || t('office.addressPlaceholder')}</dd>
+            <MapPreview className="h-64" />
+            <p className="mt-2 text-xs text-navy-500">
+              Bản đồ MapLibre + OpenFreeMap (miễn phí pilot). Điều hướng thực tế: mở Google Maps URL.
+            </p>
           </div>
-          <div>
-            <dt className="font-semibold">Phone</dt>
-            <dd>{env.contactPhone || '[Phone — admin update]'}</dd>
-          </div>
-          <div>
-            <dt className="font-semibold">Email</dt>
-            <dd>{env.contactEmail || '[Email — admin update]'}</dd>
-          </div>
-          <div>
-            <dt className="font-semibold">Hours</dt>
-            <dd>{t('office.hoursPlaceholder')}</dd>
-          </div>
-        </dl>
+        </div>
       </div>
     </>
   )
@@ -65,21 +75,24 @@ export function FaqPage() {
       <PageMeta title={t('faq.title')} description={t('faq.meta')} path="/faq" />
       <div className="container-app py-10">
         <h1 className="text-3xl font-bold">{t('faq.title')}</h1>
-        {isLoading ? <Spinner className="mt-6" /> : null}
-        <div className="mt-8 max-w-3xl space-y-3">
-          {faqs.map((f) => (
-            <details key={f.id} className="rounded-xl border border-navy-100 bg-white p-4">
-              <summary className="cursor-pointer font-medium">
-                {ja && f.question_ja ? f.question_ja : f.question_vi}
-              </summary>
-              <p className="mt-3 whitespace-pre-wrap text-navy-700">
-                {ja && f.answer_ja ? f.answer_ja : f.answer_vi}
-              </p>
-            </details>
-          ))}
-          {!isLoading && faqs.length === 0 ? (
-            <p>{t('status.empty', { ns: 'common' })}</p>
-          ) : null}
+        <div className="mt-8 grid gap-8 lg:grid-cols-2">
+          <div className="space-y-3">
+            {isLoading ? <Spinner className="mt-6" /> : null}
+            {faqs.map((f) => (
+              <details key={f.id} className="rounded-xl border border-navy-100 bg-white p-4">
+                <summary className="cursor-pointer font-medium">
+                  {ja && f.question_ja ? f.question_ja : f.question_vi}
+                </summary>
+                <p className="mt-3 whitespace-pre-wrap text-navy-700">
+                  {ja && f.answer_ja ? f.answer_ja : f.answer_vi}
+                </p>
+              </details>
+            ))}
+            {!isLoading && faqs.length === 0 ? (
+              <p>{t('status.empty', { ns: 'common' })}</p>
+            ) : null}
+          </div>
+          <FaqAssistant />
         </div>
       </div>
     </>
